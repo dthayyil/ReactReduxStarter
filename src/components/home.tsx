@@ -7,10 +7,8 @@ import Search from './search';
 
 
 type Props =
-    LoginStore.UserAuth &
-    
-    typeof LoginStore.actionCreators &
-   
+    LoginStore.UserAuth &    
+    typeof LoginStore.actionCreators &   
     RouteComponentProps<{}>;
 interface state {
     username:string ;
@@ -66,7 +64,7 @@ class Home extends React.Component<Props,state> {
                         </ul>
                     </div>
                     </nav>
-                    <Search/>
+                    <Search  />
                     </div>
                    
                ):(

@@ -3,17 +3,26 @@ import { connect } from 'react-redux';
 import { RouteComponentProps } from 'react-router';
 import { ApplicationState } from '../store';
 import * as  Store from '../store/search';
+import * as  LoginStore from '../store/login';
+import { toast } from 'react-toastify';
 
-
-type Props =
-    Store.Search & 
-    typeof Store.actionCreators & 
+type BaseProps =   
+    typeof Store.actionCreators &     
     RouteComponentProps<{}>;
-interface state {
+
+interface Props extends BaseProps{
+    login: LoginStore.UserAuth,
+    Search: Store.Search
+}    
+
+interface state  {
     searchText:string ;
     seletedplanets:Store.Result|null;
+    searchCount:number;  
+    allowedCount:number;  
 }
 
+const UnlimitedUser:string ="Luke Skywalker";
 
 class Search extends React.Component<Props,state> {
 
@@ -22,21 +31,38 @@ class Search extends React.Component<Props,state> {
         super(props)
         this.state={
             searchText:'',
-                seletedplanets:null,
+            seletedplanets:null,
+            searchCount:0,
+            allowedCount:15
         }
     }
-
+    
     Search =(e:any)=>{
         this.setState({
-            searchText :e.target.value
+            searchText :e.target.value,
+            searchCount:this.state.searchCount+1,
         })
-        this.props.GetSearch(e.target.value)
+
+        if(this.props.login.user.userName ===UnlimitedUser||(this.state.allowedCount>this.state.searchCount)){
+            this.props.GetSearch(e.target.value)
+        }
+        else {
+            toast.error("Search Limit Exceed")
+        }
     }
 
     SelectPlanet=(x:Store.Result)=>{
         this.setState({seletedplanets:x})
     }
     
+    componentDidMount(){
+        setTimeout(() => {
+            this.setState({
+                searchCount:0
+            })
+          }, 60000);
+    }
+
     public render() {      
         return (
             <React.Fragment>
@@ -62,7 +88,7 @@ class Search extends React.Component<Props,state> {
                                         <div className="list-type1">
                                             <ol>
                                                 
-                                                    {this.props.results.map((x)=>
+                                                    {this.props.Search.results.map((x)=>
                                                        {
                                                             let Value :number = parseInt(x.population) / 100000;
                                                             let Size:number=15;
@@ -181,7 +207,18 @@ class Search extends React.Component<Props,state> {
     }
 };
 
+const mapStateToProps = (state: ApplicationState) => ({
+    login: state.login,
+    Search: state.search
+});
+
+// const mapDispatchToProps = dispatch =>
+//     bindActionCreators({ refresh, refereshViewCart }, dispatch);
+
+// export const AddtoCartButton = connect(mapStateToProps, mapDispatchToProps)(AddtoCartPage)
+
+
 export default connect(
-    (state: ApplicationState) => state.search,    
+    mapStateToProps,    
     Store.actionCreators
 )(Search as any);
